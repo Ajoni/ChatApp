@@ -31,10 +31,10 @@ namespace ChatApp
         {
             InitializeComponent();
             ServPort.Text = PORT.ToString();
-            ServIP.Text = GetLocalIP();
+            ServIP.Text = GetLocalIP().ToString();
         }
 
-        private string GetLocalIP()
+        private static IPAddress GetLocalIP()
         {
             try
             {
@@ -53,12 +53,12 @@ namespace ChatApp
 
             return host
                 .AddressList
-                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
 
         private static void SetupServer()
         {
-            serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+            serverSocket.Bind(new IPEndPoint(GetLocalIP(), PORT));
             serverSocket.Listen(0);
             serverSocket.BeginAccept(AcceptCallback, null);
         }
@@ -138,6 +138,13 @@ namespace ChatApp
             }
 
             current.BeginReceive(buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
+        }
+
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SetupServer();
+            StartBtn.IsEnabled = false;
+            StartBtn.Content = "Started";
         }
     }
 }
