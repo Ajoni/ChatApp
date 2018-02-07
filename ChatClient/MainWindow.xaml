@@ -12,8 +12,8 @@
                 <TextBox x:Name="IPBox" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
                 <TextBox x:Name="PortBox" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
                 <TextBox x:Name="NameBox" HorizontalAlignment="Left" Height="23" Margin="10,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-                <Button x:Name="ConnectBtn" Content="Connect" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" Width="75"/>
-                <Button x:Name="DcBtn" Content="Disconnect" HorizontalAlignment="Left" Margin="90,94,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False"/>
+                <Button x:Name="ConnectBtn" Content="Connect" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" Width="75" Click="ConnectBtn_Click"/>
+                <Button x:Name="DcBtn" Content="Disconnect" HorizontalAlignment="Left" Margin="90,94,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False" Click="DcBtn_Click"/>
                 <Label Content="IP" HorizontalAlignment="Left" Margin="135,10,0,0" VerticalAlignment="Top"/>
                 <Label Content="Port" HorizontalAlignment="Left" Margin="135,36,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.449,1.491"/>
                 <Label Content="Display Name" HorizontalAlignment="Left" Margin="135,62,0,0" VerticalAlignment="Top" Width="83"/>
@@ -25,7 +25,7 @@
                 <SolidColorBrush Color="White"/>
             </TextBox.Background>
         </TextBox>
-        <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="436,326,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False"/>
+        <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="436,326,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="SendBtn_Click"/>
 
     </Grid>
 </Window>

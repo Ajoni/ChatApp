@@ -26,13 +26,13 @@ namespace ChatClient
         private static readonly Socket ClientSocket = new Socket
        (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-        private const int PORT = 100;
+        //private const int PORT = 100;
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private static void ConnectToServer()
+        private static void ConnectToServer(string ip, int port)
         {
             //int attempts = 0;
 
@@ -43,26 +43,26 @@ namespace ChatClient
                     //attempts++;
                     //Console.WriteLine("Connection attempt " + attempts);
                     // Change IPAddress.Loopback to a remote IP to connect to a remote host.
-                    ClientSocket.Connect(IPAddress.Loopback, PORT);
+                    ClientSocket.Connect(IPAddress.Parse(ip), port);
                 }
                 catch (SocketException)
                 {
-                    Console.Clear();
+                    
                 }
             }
 
             Console.WriteLine("Connected");
         }
-        private static void RequestLoop()
-        {
-            //Console.WriteLine(@"<Type ""exit"" to properly disconnect client>");
+        //private static void RequestLoop()
+        //{
+        //    //Console.WriteLine(@"<Type ""exit"" to properly disconnect client>");
 
-            while (true)
-            {
-                SendRequest();
-                ReceiveResponse();
-            }
-        }
+        //    while (true)
+        //    {
+        //        SendRequest();
+        //        ReceiveResponse();
+        //    }
+        //}
 
         /// <summary>
         /// Close socket and exit program.
@@ -75,12 +75,11 @@ namespace ChatClient
             Environment.Exit(0);
         }
 
-        private static void SendRequest()
+        private static void SendRequest(string request)
         {
-            string request = Console.ReadLine();
             SendString(request);
 
-            if (request.ToLower() == "exit")
+            if (request.ToLower() == "/!exit")
             {
                 Exit();
             }
@@ -103,7 +102,27 @@ namespace ChatClient
             var data = new byte[received];
             Array.Copy(buffer, data, received);
             string text = Encoding.ASCII.GetString(data);
-            Console.WriteLine(text);
+        }
+
+        private void ConnectBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectToServer(IPBox.Text,Convert.ToInt32(PortBox.Text));
+            SendString($"/!hi {NameBox.Text}");
+            ConnectBtn.IsEnabled = false;
+            DcBtn.IsEnabled = true;
+            SendBtn.IsEnabled = true;
+        }
+
+        private void SendBtn_Click(object sender, RoutedEventArgs e)
+        {
+            string msg = $"{NameBox.Text}: {MsgBox.Text}";
+            ChatBox.Items.Add(msg);
+            SendString(msg);
+        }
+
+        private void DcBtn_Click(object sender, RoutedEventArgs e)
+        {
+            SendRequest("/!exit");
         }
     }
 }
