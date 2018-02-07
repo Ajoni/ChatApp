@@ -25,11 +25,35 @@ namespace ChatApp
         private static readonly Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static readonly List<Socket> clientSockets = new List<Socket>();
         private const int BUFFER_SIZE = 2048;
-        private const int PORT = 100;
+        private const int PORT = 60000;
         private static readonly byte[] buffer = new byte[BUFFER_SIZE];
         public MainWindow()
         {
             InitializeComponent();
+            ServPort.Text = PORT.ToString();
+            ServIP.Text = GetLocalIP();
+        }
+
+        private string GetLocalIP()
+        {
+            try
+            {
+                if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+                {
+                    throw new Exception("No local IPv4 interface");
+                }
+            }
+            catch (Exception e)
+            {
+
+                MessageBox.Show(e.ToString());
+            }
+
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+
+            return host
+                .AddressList
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToString();
         }
 
         private static void SetupServer()
