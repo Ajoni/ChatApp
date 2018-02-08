@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,6 +45,8 @@ namespace ChatClient
                     //Console.WriteLine("Connection attempt " + attempts);
                     // Change IPAddress.Loopback to a remote IP to connect to a remote host.
                     ClientSocket.Connect(IPAddress.Parse(ip), port);
+                    
+                    
                 }
                 catch (SocketException)
                 {
@@ -51,7 +54,6 @@ namespace ChatClient
                 }
             }
 
-            Console.WriteLine("Connected");
         }
         //private static void RequestLoop()
         //{
@@ -94,7 +96,7 @@ namespace ChatClient
             ClientSocket.Send(buffer, 0, buffer.Length, SocketFlags.None);
         }
 
-        private static void ReceiveResponse()
+        private static void ReceiveResponse(ListBox ChatBox)
         {
             var buffer = new byte[2048];
             int received = ClientSocket.Receive(buffer, SocketFlags.None);
@@ -102,6 +104,14 @@ namespace ChatClient
             var data = new byte[received];
             Array.Copy(buffer, data, received);
             string text = Encoding.ASCII.GetString(data);
+            if(text.Length>0) ChatBox.Items.Add(text);
+        }
+        private static void ReceiveLoop(ListBox ChatBox)
+        {
+            while (true)
+            {
+                ReceiveResponse(ChatBox);
+            }
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
@@ -111,6 +121,11 @@ namespace ChatClient
             ConnectBtn.IsEnabled = false;
             DcBtn.IsEnabled = true;
             SendBtn.IsEnabled = true;
+            //new Thread(() =>
+            //{
+            //    Thread.CurrentThread.IsBackground = true;
+            //    ReceiveLoop(ChatBox);
+            //}).Start();
         }
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)

@@ -56,7 +56,7 @@ namespace ChatApp
                 .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
 
-        private static void SetupServer()
+        private  void SetupServer()
         {
             serverSocket.Bind(new IPEndPoint(GetLocalIP(), PORT));
             serverSocket.Listen(0);
@@ -74,7 +74,7 @@ namespace ChatApp
             serverSocket.Close();
         }
 
-        private static void AcceptCallback(IAsyncResult AR)
+        private  void AcceptCallback(IAsyncResult AR)
         {
             Socket socket;
 
@@ -93,7 +93,7 @@ namespace ChatApp
             serverSocket.BeginAccept(AcceptCallback, null);
         }
 
-        private static void ReceiveCallback(IAsyncResult AR)
+        private  void ReceiveCallback(IAsyncResult AR)
         {
             Socket current = (Socket)AR.AsyncState;
             int received;
@@ -113,11 +113,11 @@ namespace ChatApp
             Array.Copy(buffer, recBuf, received);
             string[] text = Encoding.ASCII.GetString(recBuf).Split(' ');
 
-            //if (text[0].ToLower() == "/!hi") // Add client to connected lsit
-            //{
-            //    ConnectedList.Items.Add(text[1]);
-            //}
-            //else 
+            if (text[0].ToLower() == "/!hi") // Add client to connected list
+            {
+                ConnectedList.Items.Add(text[1]);   //throws threading excpetion
+            }
+            else
             if (text[0].ToLower() == "/!exit") // Client wants to exit gracefully
             {
                 // Always Shutdown before closing
@@ -133,8 +133,8 @@ namespace ChatApp
                     if (sck != current)
                     {
                         sck.Send(recBuf);
-                    }
-                }
+                     }
+            }
             }
 
             current.BeginReceive(buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
