@@ -115,7 +115,10 @@ namespace ChatApp
 
             if (text[0].ToLower() == "/!hi") // Add client to connected list
             {
-                ConnectedList.Items.Add(text[1]);   //throws threading excpetion
+                Task.Factory.StartNew(() =>
+                {
+                    InvokeConnectedAdd(text[1]);
+                });               
             }
             else
             if (text[0].ToLower() == "/!exit") // Client wants to exit gracefully
@@ -124,16 +127,20 @@ namespace ChatApp
                 current.Shutdown(SocketShutdown.Both);
                 current.Close();
                 clientSockets.Remove(current);
+                Task.Factory.StartNew(() =>
+                {
+                    InvokeConnectedAdd(text[1]);
+                });
                 return;
             }
             else    //send current client's msg to other clients
             {
                 foreach (Socket sck in clientSockets)
                 {
-                    if (sck != current)
-                    {
+                    //if (sck != current)
+                    //{
                         sck.Send(recBuf);
-                     }
+                     //}
             }
             }
 
@@ -145,6 +152,22 @@ namespace ChatApp
             SetupServer();
             StartBtn.IsEnabled = false;
             StartBtn.Content = "Started";
+        }
+
+        private void InvokeConnectedAdd(string text)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ConnectedList.Items.Add(text);
+            });
+        }
+
+        private void InvokeConnectedRemove(string text)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                ConnectedList.Items.Remove(text);
+            });
         }
     }
 }

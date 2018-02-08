@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace ChatClient
 {
@@ -26,6 +27,7 @@ namespace ChatClient
     {
         private static readonly Socket ClientSocket = new Socket
        (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        private static Thread op;
 
         //private const int PORT = 100;
         public MainWindow()
@@ -55,36 +57,16 @@ namespace ChatClient
             }
 
         }
-        //private static void RequestLoop()
-        //{
-        //    //Console.WriteLine(@"<Type ""exit"" to properly disconnect client>");
-
-        //    while (true)
-        //    {
-        //        SendRequest();
-        //        ReceiveResponse();
-        //    }
-        //}
 
         /// <summary>
         /// Close socket and exit program.
         /// </summary>
-        private static void Exit()
+        private void Exit()
         {
-            SendString("/!exit"); // Tell the server we are exiting
+            SendString($"/!exit {NameBox.Text}"); // Tell the server we are exiting
             ClientSocket.Shutdown(SocketShutdown.Both);
             ClientSocket.Close();
             Environment.Exit(0);
-        }
-
-        private static void SendRequest(string request)
-        {
-            SendString(request);
-
-            if (request.ToLower() == "/!exit")
-            {
-                Exit();
-            }
         }
 
         /// <summary>
@@ -96,7 +78,7 @@ namespace ChatClient
             ClientSocket.Send(buffer, 0, buffer.Length, SocketFlags.None);
         }
 
-        private static void ReceiveResponse(ListBox ChatBox)
+        private void ReceiveResponse()
         {
             var buffer = new byte[2048];
             int received = ClientSocket.Receive(buffer, SocketFlags.None);
@@ -104,14 +86,20 @@ namespace ChatClient
             var data = new byte[received];
             Array.Copy(buffer, data, received);
             string text = Encoding.ASCII.GetString(data);
-            if(text.Length>0) ChatBox.Items.Add(text);
+            ChatBox.Items.Add(text);
         }
-        private static void ReceiveLoop(ListBox ChatBox)
+        private void InvokeReceive()
         {
-            while (true)
+            op = new Thread(new ThreadStart((Action)(() =>
             {
-                ReceiveResponse(ChatBox);
-            }
+                while (true)
+                {
+                    ReceiveResponse();
+                }
+            })));
+            op.Name = "RecevieThread";
+            op.Start();
+
         }
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
@@ -121,11 +109,12 @@ namespace ChatClient
             ConnectBtn.IsEnabled = false;
             DcBtn.IsEnabled = true;
             SendBtn.IsEnabled = true;
-            //new Thread(() =>
-            //{
-            //    Thread.CurrentThread.IsBackground = true;
-            //    ReceiveLoop(ChatBox);
-            //}).Start();
+            MsgBox.Text = "";
+            MsgBox.Opacity = 1.0;
+            Task.Factory.StartNew(() =>
+            {
+                InvokeReceive();
+            });
         }
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)
@@ -137,7 +126,8 @@ namespace ChatClient
 
         private void DcBtn_Click(object sender, RoutedEventArgs e)
         {
-            SendRequest("/!exit");
+            op.Abort();
+            Exit();
         }
     }
 }
