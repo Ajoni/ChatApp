@@ -28,34 +28,33 @@ namespace ChatClient
         private static readonly Socket ClientSocket = new Socket
        (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static Thread op;
+        private delegate void ChatListAddMsgDelegate(ListBox ChatList, string text);
 
-        //private const int PORT = 100;
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent();            
         }
+
+        //void SomeNonUIThreadMethod(ListBox Chat, string msg)
+        //{
+        //    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+        //    (ChatListAddMsgDelegate)delegate (ListBox List, string text)
+        //    { List.Items.Add(text); }, Chat, msg);
+        //}
 
         private static void ConnectToServer(string ip, int port)
         {
-            //int attempts = 0;
-
             while (!ClientSocket.Connected)
             {
                 try
                 {
-                    //attempts++;
-                    //Console.WriteLine("Connection attempt " + attempts);
-                    // Change IPAddress.Loopback to a remote IP to connect to a remote host.
-                    ClientSocket.Connect(IPAddress.Parse(ip), port);
-                    
-                    
+                    ClientSocket.Connect(IPAddress.Parse(ip), port);                   
                 }
-                catch (SocketException)
+                catch (SocketException) //server not up, keep trying
                 {
                     
                 }
             }
-
         }
 
         /// <summary>
@@ -86,9 +85,11 @@ namespace ChatClient
             var data = new byte[received];
             Array.Copy(buffer, data, received);
             string text = Encoding.ASCII.GetString(data);
-            ChatBox.Items.Add(text);
+            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+            (ChatListAddMsgDelegate)delegate (ListBox List, string msg)
+            { List.Items.Add(text); }, ChatBox, text);
         }
-        private void InvokeReceive()
+        private void ReceiveLoop()
         {
             op = new Thread(new ThreadStart((Action)(() =>
             {
@@ -98,6 +99,7 @@ namespace ChatClient
                 }
             })));
             op.Name = "RecevieThread";
+            op.IsBackground = true;
             op.Start();
 
         }
@@ -111,10 +113,10 @@ namespace ChatClient
             SendBtn.IsEnabled = true;
             MsgBox.Text = "";
             MsgBox.Opacity = 1.0;
-            Task.Factory.StartNew(() =>
-            {
-                InvokeReceive();
-            });
+            //Task.Factory.StartNew(() =>
+            //{
+                ReceiveLoop();
+            //});
         }
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)

@@ -129,7 +129,7 @@ namespace ChatApp
                 clientSockets.Remove(current);
                 Task.Factory.StartNew(() =>
                 {
-                    InvokeConnectedAdd(text[1]);
+                    InvokeConnectedRemove(text[1]);
                 });
                 return;
             }
@@ -137,10 +137,10 @@ namespace ChatApp
             {
                 foreach (Socket sck in clientSockets)
                 {
-                    //if (sck != current)
-                    //{
+                    if (sck != current)
+                    {
                         sck.Send(recBuf);
-                     //}
+                    }
             }
             }
 
