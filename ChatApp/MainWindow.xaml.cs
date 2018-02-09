@@ -118,8 +118,9 @@ namespace ChatApp
                 Task.Factory.StartNew(() =>
                 {
                     InvokeConnectedAdd(text[1]);
-                });               
-            }
+                });
+                RelayToClients(current, recBuf);
+            } //add to connected list and realay to other clients
             else
             if (text[0].ToLower() == "/!exit") // Client wants to exit gracefully
             {
@@ -131,20 +132,26 @@ namespace ChatApp
                 {
                     InvokeConnectedRemove(text[1]);
                 });
+                RelayToClients(current, recBuf);
                 return;
-            }
-            else    //send current client's msg to other clients
+            } //remove from connected list and realay to other clients
+            else   
             {
-                foreach (Socket sck in clientSockets)
-                {
-                    if (sck != current)
-                    {
-                        sck.Send(recBuf);
-                    }
-            }
-            }
+                RelayToClients(current, recBuf);
+            }  //relay current client's msg to other clients
 
             current.BeginReceive(buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
+        }
+
+        private void RelayToClients(Socket sender, byte[] text)
+        {
+            foreach (Socket sck in clientSockets)
+            {
+                if (sck != sender)
+                {
+                    sck.Send(text);
+                }
+            }
         }
 
         private void StartBtn_Click(object sender, RoutedEventArgs e)

@@ -85,9 +85,26 @@ namespace ChatClient
             var data = new byte[received];
             Array.Copy(buffer, data, received);
             string text = Encoding.ASCII.GetString(data);
-            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-            (ChatListAddMsgDelegate)delegate (ListBox List, string msg)
-            { List.Items.Add(text); }, ChatBox, text);
+            string[] words = text.Split(' ');
+            switch (words[0])
+            {
+                case "/!hi":
+                    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
+                    { ConnectedList.Items.Add(name); }, ClientsList, words[1]);
+                    break;
+                case "/!exit":
+                    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
+                    { ConnectedList.Items.Remove(name); }, ClientsList, words[1]);
+                    break;
+                default:
+                    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                    (ChatListAddMsgDelegate)delegate (ListBox List, string msg)
+                    { List.Items.Add(text); }, ChatBox, text);
+                    break;
+            }
+
         }
         private void ReceiveLoop()
         {
@@ -113,10 +130,7 @@ namespace ChatClient
             SendBtn.IsEnabled = true;
             MsgBox.Text = "";
             MsgBox.Opacity = 1.0;
-            //Task.Factory.StartNew(() =>
-            //{
-                ReceiveLoop();
-            //});
+            ReceiveLoop();  //starts thread receving msgs
         }
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)

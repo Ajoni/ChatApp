@@ -26,6 +26,9 @@
             </TextBox.Background>
         </TextBox>
         <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="436,326,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="SendBtn_Click"/>
+        <GroupBox Header="Connected" HorizontalAlignment="Left" Height="142" Margin="248,10,0,0" VerticalAlignment="Top" Width="259">
+            <ListBox x:Name="ClientsList" HorizontalAlignment="Left" Height="120" VerticalAlignment="Top" Width="249" Margin="0,0,-2,0"/>
+        </GroupBox>
 
     </Grid>
 </Window>
