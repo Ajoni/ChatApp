@@ -27,6 +27,7 @@ namespace ChatApp
         private const int BUFFER_SIZE = 2048;
         private const int PORT = 60000;
         private static readonly byte[] buffer = new byte[BUFFER_SIZE];
+        HashSet<string> ClientNames = new HashSet<string>();
         public MainWindow()
         {
             InitializeComponent();
@@ -119,7 +120,7 @@ namespace ChatApp
                 {
                     InvokeConnectedAdd(text[1]);
                 });
-                RelayToClients(current, recBuf);
+                //RelayToClients(current, recBuf);
             } //add to connected list and realay to other clients
             else
             if (text[0].ToLower() == "/!exit") // Client wants to exit gracefully
@@ -150,6 +151,23 @@ namespace ChatApp
                 if (sck != sender)
                 {
                     sck.Send(text);
+                }
+            }
+        }
+        private void RelayToClients(byte[] text)
+        {
+            foreach (Socket sck in clientSockets)
+            {
+                sck.Send(text);
+            }
+        }
+        private void RelayConnectedListToClients()
+        {
+            foreach (Socket sck in clientSockets)
+            {
+                foreach (string item in ConnectedList.Items)
+                {
+                    sck.Send(Encoding.ASCII.GetBytes($"/!hi {item}"));
                 }
             }
         }

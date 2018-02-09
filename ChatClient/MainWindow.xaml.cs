@@ -29,6 +29,7 @@ namespace ChatClient
        (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static Thread op;
         private delegate void ChatListAddMsgDelegate(ListBox ChatList, string text);
+        HashSet<string> ClientNames = new HashSet<string>();
 
         public MainWindow()
         {
@@ -42,19 +43,23 @@ namespace ChatClient
         //    { List.Items.Add(text); }, Chat, msg);
         //}
 
-        private static void ConnectToServer(string ip, int port)
+        private static bool ConnectToServer(string ip, int port)
         {
+            int attempts = 0;
             while (!ClientSocket.Connected)
             {
+                if (attempts > 5)
+                {
+                    return false;
+                }
                 try
                 {
-                    ClientSocket.Connect(IPAddress.Parse(ip), port);                   
+                    ClientSocket.Connect(IPAddress.Parse(ip), port); attempts++;
                 }
                 catch (SocketException) //server not up, keep trying
-                {
-                    
+                {                    
                 }
-            }
+            } return true;
         }
 
         /// <summary>
@@ -123,14 +128,17 @@ namespace ChatClient
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
-            ConnectToServer(IPBox.Text,Convert.ToInt32(PortBox.Text));
-            SendString($"/!hi {NameBox.Text}");
-            ConnectBtn.IsEnabled = false;
-            DcBtn.IsEnabled = true;
-            SendBtn.IsEnabled = true;
-            MsgBox.Text = "";
-            MsgBox.Opacity = 1.0;
-            ReceiveLoop();  //starts thread receving msgs
+            if(ConnectToServer(IPBox.Text,Convert.ToInt32(PortBox.Text)))
+                {
+                    SendString($"/!hi {NameBox.Text}");
+                    ConnectBtn.IsEnabled = false;
+                    DcBtn.IsEnabled = true;
+                    SendBtn.IsEnabled = true;
+                    MsgBox.Text = "";
+                    MsgBox.Opacity = 1.0;
+                    ReceiveLoop();  //starts thread receving msgs 
+                }
+            else MessageBox.Show("Server not responding");
         }
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)
