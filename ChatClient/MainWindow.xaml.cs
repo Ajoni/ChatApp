@@ -35,13 +35,6 @@ namespace ChatClient
             InitializeComponent();            
         }
 
-        //void SomeNonUIThreadMethod(ListBox Chat, string msg)
-        //{
-        //    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-        //    (ChatListAddMsgDelegate)delegate (ListBox List, string text)
-        //    { List.Items.Add(text); }, Chat, msg);
-        //}
-
         private static bool ConnectToServer(string ip, int port)
         {
             int attempts = 0;
@@ -134,6 +127,11 @@ namespace ChatClient
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
+            if (IPBox.Text==String.Empty || PortBox.Text == String.Empty || NameBox.Text == String.Empty)
+            {
+                MessageBox.Show("Enter serever date and your display name before connecting");
+                return;
+            }
             if(ConnectToServer(IPBox.Text,Convert.ToInt32(PortBox.Text)))
                 {
                 NameBox.Text = NameBox.Text.Replace(" ", String.Empty); //remove ' ' from display name
