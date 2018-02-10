@@ -113,33 +113,38 @@ namespace ChatApp
             byte[] recBuf = new byte[received];
             Array.Copy(buffer, recBuf, received);
             string[] text = Encoding.ASCII.GetString(recBuf).Split(' ');
-
-            if (text[0].ToLower() == "/!hi") // Add client to connected list
+            switch (text[0])
             {
+            //add to connected list and realay to other clients
+                case "/!hi":
+                RelayHiToClients(current, recBuf);
                 Task.Factory.StartNew(() =>
                 {
+                    if (ClientNames.Contains(text[1]))
+                    {
+                        text[1] += $"({((System.Net.IPEndPoint)current.RemoteEndPoint).Address})";
+                    }
                     InvokeConnectedAdd(text[1]);
                 });
-                //RelayToClients(current, recBuf);
-            } //add to connected list and realay to other clients
-            else
-            if (text[0].ToLower() == "/!exit") // Client wants to exit gracefully
-            {
-                // Always Shutdown before closing
+                    break;
+
+             //remove from connected list and realay to other clients
+                case "/!exit":
                 current.Shutdown(SocketShutdown.Both);
+                RelayToClients(current, recBuf);
+                ClientNames.Remove(text[1]);
                 current.Close();
                 clientSockets.Remove(current);
                 Task.Factory.StartNew(() =>
                 {
                     InvokeConnectedRemove(text[1]);
                 });
+                return;                    
+             //relay current client's msg to other clients
+                default:            
                 RelayToClients(current, recBuf);
-                return;
-            } //remove from connected list and realay to other clients
-            else   
-            {
-                RelayToClients(current, recBuf);
-            }  //relay current client's msg to other clients
+                    break;
+            } 
 
             current.BeginReceive(buffer, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
         }
@@ -154,20 +159,22 @@ namespace ChatApp
                 }
             }
         }
-        private void RelayToClients(byte[] text)
+
+        private void RelayHiToClients(Socket sender, byte[] NewClientName)
         {
             foreach (Socket sck in clientSockets)
             {
-                sck.Send(text);
-            }
-        }
-        private void RelayConnectedListToClients()
-        {
-            foreach (Socket sck in clientSockets)
-            {
-                foreach (string item in ConnectedList.Items)
+                if (sck != sender) //send new clients names to 'older' clients
                 {
-                    sck.Send(Encoding.ASCII.GetBytes($"/!hi {item}"));
+                    sck.Send(NewClientName);
+                }
+                else               //send 'older' clients names to new client
+                {
+                    foreach (string s in ClientNames)
+                    {
+                        string text = $"/!hi {s}";
+                        sck.Send(Encoding.ASCII.GetBytes(text));
+                    }
                 }
             }
         }
@@ -184,6 +191,7 @@ namespace ChatApp
             Dispatcher.Invoke(() =>
             {
                 ConnectedList.Items.Add(text);
+                ClientNames.Add(text);
             });
         }
 

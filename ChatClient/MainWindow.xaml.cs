@@ -29,7 +29,6 @@ namespace ChatClient
        (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static Thread op;
         private delegate void ChatListAddMsgDelegate(ListBox ChatList, string text);
-        HashSet<string> ClientNames = new HashSet<string>();
 
         public MainWindow()
         {
@@ -48,16 +47,17 @@ namespace ChatClient
             int attempts = 0;
             while (!ClientSocket.Connected)
             {
-                if (attempts > 5)
+                if (attempts > 3)
                 {
                     return false;
                 }
                 try
                 {
-                    ClientSocket.Connect(IPAddress.Parse(ip), port); attempts++;
+                    ClientSocket.Connect(IPAddress.Parse(ip), port);
                 }
                 catch (SocketException) //server not up, keep trying
-                {                    
+                {
+                    attempts++;
                 }
             } return true;
         }
@@ -92,11 +92,16 @@ namespace ChatClient
             string text = Encoding.ASCII.GetString(data);
             string[] words = text.Split(' ');
             switch (words[0])
-            {
+            {//during testing on one pc "/!hi {name}" msgs would overlap and cause wrong names to bo added
                 case "/!hi":
-                    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
-                    { ConnectedList.Items.Add(name); }, ClientsList, words[1]);
+                    words = text.Split(new string[] { "/!hi" },StringSplitOptions.RemoveEmptyEntries);
+                    for(int i = 0; i < words.Length; i ++)
+                    {
+                        string ClientName = words[i].Split(' ')[1];
+                        this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                        (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
+                        { ConnectedList.Items.Add(name); }, ClientsList, ClientName);
+                    }
                     break;
                 case "/!exit":
                     this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -109,6 +114,7 @@ namespace ChatClient
                     { List.Items.Add(text); }, ChatBox, text);
                     break;
             }
+            buffer = null;
 
         }
         private void ReceiveLoop()
@@ -130,12 +136,14 @@ namespace ChatClient
         {
             if(ConnectToServer(IPBox.Text,Convert.ToInt32(PortBox.Text)))
                 {
+                NameBox.Text = NameBox.Text.Replace(" ", String.Empty); //remove ' ' from display name
                     SendString($"/!hi {NameBox.Text}");
                     ConnectBtn.IsEnabled = false;
                     DcBtn.IsEnabled = true;
                     SendBtn.IsEnabled = true;
                     MsgBox.Text = "";
                     MsgBox.Opacity = 1.0;
+                ClientsList.Items.Add($"{NameBox.Text} (You)");
                     ReceiveLoop();  //starts thread receving msgs 
                 }
             else MessageBox.Show("Server not responding");
@@ -152,6 +160,9 @@ namespace ChatClient
         {
             op.Abort();
             Exit();
+            DcBtn.IsEnabled = false;
+            ConnectBtn.IsEnabled = true;
+            SendBtn.IsEnabled = false;
         }
     }
 }

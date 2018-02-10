@@ -9,8 +9,8 @@
     <Grid>
         <GroupBox Header="Server Data" HorizontalAlignment="Left" Height="142" Margin="10,10,0,0" VerticalAlignment="Top" Width="238">
             <Grid HorizontalAlignment="Left" Height="121" VerticalAlignment="Top" Width="228" Margin="0,0,-2,-1">
-                <TextBox x:Name="IPBox" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-                <TextBox x:Name="PortBox" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+                <TextBox x:Name="IPBox" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="192.168.0.100"/>
+                <TextBox x:Name="PortBox" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="60000"/>
                 <TextBox x:Name="NameBox" HorizontalAlignment="Left" Height="23" Margin="10,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
                 <Button x:Name="ConnectBtn" Content="Connect" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" Width="75" Click="ConnectBtn_Click"/>
                 <Button x:Name="DcBtn" Content="Disconnect" HorizontalAlignment="Left" Margin="90,94,0,0" VerticalAlignment="Top" Width="75" IsEnabled="False" Click="DcBtn_Click"/>
