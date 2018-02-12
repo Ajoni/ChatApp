@@ -29,8 +29,10 @@ namespace ChatClient
        (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static Thread op;
         private delegate void ChatListAddMsgDelegate(ListBox ChatList, string text);
-
-        public MainWindow()
+        private static string ClientName;
+        private static string endOfMessage = "/^^^/"; //might break ascii art 
+    
+    public MainWindow()
         {
             InitializeComponent();            
         }
@@ -60,7 +62,7 @@ namespace ChatClient
         /// </summary>
         private void Exit()
         {
-            SendString($"/!exit {NameBox.Text}"); // Tell the server we are exiting
+            SendString($"/!exit {ClientName}{endOfMessage}"); // Tell the server we are exiting
             ClientSocket.Shutdown(SocketShutdown.Both);
             ClientSocket.Close();
             Environment.Exit(0);
@@ -83,31 +85,42 @@ namespace ChatClient
             var data = new byte[received];
             Array.Copy(buffer, data, received);
             string text = Encoding.ASCII.GetString(data);
-            string[] words = text.Split(' ');
-            switch (words[0])
-            {//during testing on one pc "/!hi {name}" msgs would overlap and cause wrong names to bo added
-                case "/!hi":
-                    words = text.Split(new string[] { "/!hi" },StringSplitOptions.RemoveEmptyEntries);
-                    for(int i = 0; i < words.Length; i ++)
-                    {
-                        string ClientName = words[i].Split(' ')[1];
+            string[] messages = text.Split(new string[] { endOfMessage }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string message in messages)
+            {
+                string[] words = message.Split(' ');
+                switch (words[0])
+                {
+                    case "/!hi":
+                        //words = text.Split(new string[] { "/!hi" }, StringSplitOptions.RemoveEmptyEntries);
+                        //for (int i = 0; i < words.Length; i++)
+                        //{
+                        string Name = words[1];//.Split(' ')[1];
+                            this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                            (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
+                            { ConnectedList.Items.Add(name); }, ClientsList, Name);
+                        //}
+                        break;
+                    case "/!exit":
                         this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                         (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
-                        { ConnectedList.Items.Add(name); }, ClientsList, ClientName);
-                    }
-                    break;
-                case "/!exit":
-                    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
-                    { ConnectedList.Items.Remove(name); }, ClientsList, words[1]);
-                    break;
-                default:
-                    this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
-                    (ChatListAddMsgDelegate)delegate (ListBox List, string msg)
-                    { List.Items.Add(text); }, ChatBox, text);
-                    break;
+                        { ConnectedList.Items.Remove(name); }, ClientsList, words[1]);
+                        break;
+                    case "/!er":
+                        ClientName += words[1];
+                        this.Dispatcher.Invoke(() =>
+                       {
+                           ClientsList.Items[0] = ClientName;
+                           NameBox.Text = ClientName;
+                       });
+                        break;
+                    default:
+                        this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
+                        (ChatListAddMsgDelegate)delegate (ListBox List, string msg)
+                        { List.Items.Add(text); }, ChatBox, message);
+                        break;
+                } 
             }
-            buffer = null;
 
         }
         private void ReceiveLoop()
@@ -134,14 +147,17 @@ namespace ChatClient
             }
             if(ConnectToServer(IPBox.Text,Convert.ToInt32(PortBox.Text)))
                 {
-                NameBox.Text = NameBox.Text.Replace(" ", String.Empty); //remove ' ' from display name
-                    SendString($"/!hi {NameBox.Text}");
+                ClientName = NameBox.Text = NameBox.Text.Replace(" ", String.Empty); //remove ' ' from display name
+                SendString($"/!hi {ClientName}{endOfMessage}");
                     ConnectBtn.IsEnabled = false;
                     DcBtn.IsEnabled = true;
                     SendBtn.IsEnabled = true;
+                    IPBox.IsEnabled = false;
+                    PortBox.IsEnabled = false;
+                    NameBox.IsEnabled = false;
                     MsgBox.Text = "";
                     MsgBox.Opacity = 1.0;
-                ClientsList.Items.Add($"{NameBox.Text} (You)");
+                ClientsList.Items.Add($"{ClientName}");
                     ReceiveLoop();  //starts thread receving msgs 
                 }
             else MessageBox.Show("Server not responding");
@@ -149,7 +165,7 @@ namespace ChatClient
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)
         {
-            string msg = $"{NameBox.Text}: {MsgBox.Text}";
+            string msg = $"{ClientName}: {MsgBox.Text}{endOfMessage}";
             ChatBox.Items.Add(msg);
             SendString(msg);
         }

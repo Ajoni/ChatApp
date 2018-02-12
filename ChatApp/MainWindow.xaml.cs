@@ -25,13 +25,12 @@ namespace ChatApp
         private static readonly Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private static readonly List<Socket> clientSockets = new List<Socket>();
         private const int BUFFER_SIZE = 2048;
-        private const int PORT = 60000;
         private static readonly byte[] buffer = new byte[BUFFER_SIZE];
         HashSet<string> ClientNames = new HashSet<string>();
+        private static string endOfMessage = "/^^^/";
         public MainWindow()
         {
             InitializeComponent();
-            ServPort.Text = PORT.ToString();
             ServIP.Text = GetLocalIP().ToString();
         }
 
@@ -59,7 +58,12 @@ namespace ChatApp
 
         private  void SetupServer()
         {
-            serverSocket.Bind(new IPEndPoint(GetLocalIP(), PORT));
+            if(ServPort.Text == String.Empty)
+            {
+                MessageBox.Show("Specify port");
+                return;
+            }
+            serverSocket.Bind(new IPEndPoint(GetLocalIP(), Convert.ToInt32(ServPort.Text)));
             serverSocket.Listen(0);
             serverSocket.BeginAccept(AcceptCallback, null);
         }
@@ -117,29 +121,27 @@ namespace ChatApp
             {
             //add to connected list and realay to other clients
                 case "/!hi":
-                RelayHiToClients(current, recBuf);
-                Task.Factory.StartNew(() =>
-                {
+                    text[1] = text[1].Replace(endOfMessage, String.Empty);
                     if (ClientNames.Contains(text[1]))
                     {
-                        text[1] += $"({((System.Net.IPEndPoint)current.RemoteEndPoint).Address})";
+                        string clientIP = $"({((System.Net.IPEndPoint)current.RemoteEndPoint).Address})";
+                        text[1] += clientIP;
+                        current.Send(Encoding.ASCII.GetBytes($"/!er {clientIP}{endOfMessage}"));//inform client about its name being a dupeplicate of other client (client localy adds ip to its name)
                     }
+                RelayHiToClients(current, Encoding.ASCII.GetBytes($"{text[0]} {text[1]}{endOfMessage}")); 
                     InvokeConnectedAdd(text[1]);
-                });
                     break;
 
              //remove from connected list and realay to other clients
                 case "/!exit":
                 current.Shutdown(SocketShutdown.Both);
                 RelayToClients(current, recBuf);
-                ClientNames.Remove(text[1]);
+                ClientNames.Remove(text[1].Replace(endOfMessage, String.Empty));
                 current.Close();
                 clientSockets.Remove(current);
-                Task.Factory.StartNew(() =>
-                {
                     InvokeConnectedRemove(text[1]);
-                });
-                return;                    
+                return;      
+                    
              //relay current client's msg to other clients
                 default:            
                 RelayToClients(current, recBuf);
@@ -172,7 +174,7 @@ namespace ChatApp
                 {
                     foreach (string s in ClientNames)
                     {
-                        string text = $"/!hi {s}";
+                        string text = $"/!hi {s}{endOfMessage}";
                         sck.Send(Encoding.ASCII.GetBytes(text));
                     }
                 }
@@ -200,6 +202,7 @@ namespace ChatApp
             Dispatcher.Invoke(() =>
             {
                 ConnectedList.Items.Remove(text);
+                ClientNames.Remove(text);
             });
         }
     }
