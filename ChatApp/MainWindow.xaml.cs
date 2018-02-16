@@ -58,11 +58,6 @@ namespace ChatApp
 
         private  void SetupServer()
         {
-            if(ServPort.Text == String.Empty)
-            {
-                MessageBox.Show("Specify port");
-                return;
-            }
             serverSocket.Bind(new IPEndPoint(GetLocalIP(), Convert.ToInt32(ServPort.Text)));
             serverSocket.Listen(0);
             serverSocket.BeginAccept(AcceptCallback, null);
@@ -116,7 +111,7 @@ namespace ChatApp
 
             byte[] recBuf = new byte[received];
             Array.Copy(buffer, recBuf, received);
-            string[] text = Encoding.ASCII.GetString(recBuf).Split(' ');
+            string[] text = Encoding.Unicode.GetString(recBuf).Split(' ');
             switch (text[0])
             {
             //add to connected list and realay to other clients
@@ -126,9 +121,9 @@ namespace ChatApp
                     {
                         string clientIP = $"({((System.Net.IPEndPoint)current.RemoteEndPoint).Address})";
                         text[1] += clientIP;
-                        current.Send(Encoding.ASCII.GetBytes($"/!er {clientIP}{endOfMessage}"));//inform client about its name being a dupeplicate of other client (client localy adds ip to its name)
+                        current.Send(Encoding.Unicode.GetBytes($"/!er {clientIP}{endOfMessage}"));//inform client about its name being a dupeplicate of other client (client localy adds ip to its name)
                     }
-                RelayHiToClients(current, Encoding.ASCII.GetBytes($"{text[0]} {text[1]}{endOfMessage}")); 
+                RelayHiToClients(current, Encoding.Unicode.GetBytes($"{text[0]} {text[1]}{endOfMessage}")); 
                     InvokeConnectedAdd(text[1]);
                     break;
 
@@ -175,7 +170,7 @@ namespace ChatApp
                     foreach (string s in ClientNames)
                     {
                         string text = $"/!hi {s}{endOfMessage}";
-                        sck.Send(Encoding.ASCII.GetBytes(text));
+                        sck.Send(Encoding.Unicode.GetBytes(text));
                     }
                 }
             }
@@ -183,8 +178,10 @@ namespace ChatApp
 
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
+            if(ServPort.Text == String.Empty) { MessageBox.Show("Enter port number"); return; }
             SetupServer();
             StartBtn.IsEnabled = false;
+            ServPort.IsEnabled = false;
             StartBtn.Content = "Started";
         }
 

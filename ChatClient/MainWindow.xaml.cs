@@ -30,7 +30,7 @@ namespace ChatClient
         private static Thread op;
         private delegate void ChatListAddMsgDelegate(ListBox ChatList, string text);
         private static string ClientName;
-        private static string endOfMessage = "/^^^/"; //might break ascii art 
+        private static string endOfMessage = "/^^^/"; 
     
     public MainWindow()
         {
@@ -50,7 +50,7 @@ namespace ChatClient
                 {
                     ClientSocket.Connect(IPAddress.Parse(ip), port);
                 }
-                catch (SocketException) //server not up, keep trying
+                catch (Exception) //server not up, keep trying
                 {
                     attempts++;
                 }
@@ -69,11 +69,11 @@ namespace ChatClient
         }
 
         /// <summary>
-        /// Sends a string to the server with ASCII encoding.
+        /// Sends a string to the server with Unicode encoding.
         /// </summary>
         private static void SendString(string text)
         {
-            byte[] buffer = Encoding.ASCII.GetBytes(text);
+            byte[] buffer = Encoding.Unicode.GetBytes(text);
             ClientSocket.Send(buffer, 0, buffer.Length, SocketFlags.None);
         }
 
@@ -84,7 +84,7 @@ namespace ChatClient
             if (received == 0) return;
             var data = new byte[received];
             Array.Copy(buffer, data, received);
-            string text = Encoding.ASCII.GetString(data);
+            string text = Encoding.Unicode.GetString(data);
             string[] messages = text.Split(new string[] { endOfMessage }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string message in messages)
             {
@@ -92,14 +92,10 @@ namespace ChatClient
                 switch (words[0])
                 {
                     case "/!hi":
-                        //words = text.Split(new string[] { "/!hi" }, StringSplitOptions.RemoveEmptyEntries);
-                        //for (int i = 0; i < words.Length; i++)
-                        //{
-                        string Name = words[1];//.Split(' ')[1];
+                        string Name = words[1];
                             this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                             (ChatListAddMsgDelegate)delegate (ListBox ConnectedList, string name)
                             { ConnectedList.Items.Add(name); }, ClientsList, Name);
-                        //}
                         break;
                     case "/!exit":
                         this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -117,7 +113,11 @@ namespace ChatClient
                     default:
                         this.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal,
                         (ChatListAddMsgDelegate)delegate (ListBox List, string msg)
-                        { List.Items.Add(text); }, ChatBox, message);
+                        { List.Items.Add(msg);
+                            var border = (Border)VisualTreeHelper.GetChild(List, 0);
+                            var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
+                            scrollViewer.ScrollToBottom();
+                        }, ChatBox, message);
                         break;
                 } 
             }
@@ -131,9 +131,11 @@ namespace ChatClient
                 {
                     ReceiveResponse();
                 }
-            })));
-            op.Name = "RecevieThread";
-            op.IsBackground = true;
+            })))
+            {
+                Name = "RecevieThread",
+                IsBackground = true
+            };
             op.Start();
 
         }
@@ -165,9 +167,12 @@ namespace ChatClient
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)
         {
-            string msg = $"{ClientName}: {MsgBox.Text}{endOfMessage}";
+            string msg = $"{ClientName}: {MsgBox.Text}";
             ChatBox.Items.Add(msg);
-            SendString(msg);
+            var border = (Border)VisualTreeHelper.GetChild(ChatBox, 0);
+            var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
+            scrollViewer.ScrollToBottom();
+            SendString($"{msg}{endOfMessage}");
         }
 
         private void DcBtn_Click(object sender, RoutedEventArgs e)
