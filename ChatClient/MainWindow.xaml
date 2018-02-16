@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatClient"
         mc:Ignorable="d"
-        Title="MainWindow" Height="389.54" Width="525">
+        Title="MainWindow" Height="389.54" Width="525" SizeToContent="WidthAndHeight">
     <Grid>
         <GroupBox Header="Server Data" HorizontalAlignment="Left" Height="142" Margin="10,10,0,0" VerticalAlignment="Top" Width="238">
             <Grid HorizontalAlignment="Left" Height="121" VerticalAlignment="Top" Width="228" Margin="0,0,-2,-1">
@@ -20,7 +20,7 @@
             </Grid>
         </GroupBox>
         <ListBox x:Name="ChatBox" HorizontalAlignment="Left" Height="159" Margin="10,157,0,0" VerticalAlignment="Top" Width="497"/>
-        <TextBox x:Name="MsgBox" HorizontalAlignment="Left" Height="23" Margin="10,326,0,0" TextWrapping="Wrap" Text="Your Message" VerticalAlignment="Top" Width="421" Opacity="0.4">
+        <TextBox x:Name="MsgBox" HorizontalAlignment="Left" Height="23" Margin="10,326,0,0" TextWrapping="Wrap" Text="Your Message" VerticalAlignment="Top" Width="421" Opacity="0.4" KeyDown="EnterPressed">
             <TextBox.Background>
                 <SolidColorBrush Color="White"/>
             </TextBox.Background>

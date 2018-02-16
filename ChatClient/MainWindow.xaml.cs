@@ -73,7 +73,7 @@ namespace ChatClient
         /// </summary>
         private static void SendString(string text)
         {
-            byte[] buffer = Encoding.Unicode.GetBytes(text);
+            byte[] buffer = Encoding.ASCII.GetBytes(text);
             ClientSocket.Send(buffer, 0, buffer.Length, SocketFlags.None);
         }
 
@@ -173,6 +173,7 @@ namespace ChatClient
             var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
             scrollViewer.ScrollToBottom();
             SendString($"{msg}{endOfMessage}");
+            MsgBox.Text = "";
         }
 
         private void DcBtn_Click(object sender, RoutedEventArgs e)
@@ -182,6 +183,14 @@ namespace ChatClient
             DcBtn.IsEnabled = false;
             ConnectBtn.IsEnabled = true;
             SendBtn.IsEnabled = false;
+        }
+
+        private void EnterPressed(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                SendBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            }
         }
     }
 }
