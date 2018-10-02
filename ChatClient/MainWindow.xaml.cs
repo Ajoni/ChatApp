@@ -167,13 +167,7 @@ namespace ChatClient
 
         private void SendBtn_Click(object sender, RoutedEventArgs e)
         {
-            string msg = $"{ClientName}: {MsgBox.Text}";
-            ChatBox.Items.Add(msg);
-            var border = (Border)VisualTreeHelper.GetChild(ChatBox, 0);
-            var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
-            scrollViewer.ScrollToBottom();
-            SendString($"{msg}{endOfMessage}");
-            MsgBox.Text = "";
+            SendMessage();
         }
 
         private void DcBtn_Click(object sender, RoutedEventArgs e)
@@ -189,8 +183,19 @@ namespace ChatClient
         {
             if(e.Key == Key.Enter)
             {
-                SendBtn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                SendMessage();
             }
+        }
+
+        private void SendMessage()
+        {
+            string msg = $"{ClientName}: {MsgBox.Text}";
+            ChatBox.Items.Add(msg);
+            var border = (Border)VisualTreeHelper.GetChild(ChatBox, 0);
+            var scrollViewer = (ScrollViewer)VisualTreeHelper.GetChild(border, 0);
+            scrollViewer.ScrollToBottom();
+            SendString($"{msg}{endOfMessage}");
+            MsgBox.Text = "";
         }
     }
 }
