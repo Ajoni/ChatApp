@@ -5,20 +5,32 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="215.272" Width="525">
-    <Grid>
-        <GroupBox Header="ServerData" HorizontalAlignment="Left" Height="156" Margin="10,10,0,0" VerticalAlignment="Top" Width="185">
-            <Grid HorizontalAlignment="Left" Height="120" Margin="0,10,-2,0" VerticalAlignment="Top" Width="175" RenderTransformOrigin="0.113,0.014">
-                <TextBox x:Name="ServIP" HorizontalAlignment="Left" Height="23" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" IsEnabled="False"/>
-                <TextBox x:Name="ServPort" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="60000"/>
-                <Button x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Margin="30,66,0,0" VerticalAlignment="Top" Width="75" Click="StartBtn_Click"/>
-                <Label Content="Port" HorizontalAlignment="Left" Margin="135,35,0,0" VerticalAlignment="Top"/>
-                <Label Content="IP" HorizontalAlignment="Left" Margin="135,7,0,0" VerticalAlignment="Top"/>
-            </Grid>
-        </GroupBox>
-        <GroupBox Header="ConnectedToServer" HorizontalAlignment="Left" Height="156" Margin="200,10,0,0" VerticalAlignment="Top" Width="307">
-            <ListBox x:Name="ConnectedList" HorizontalAlignment="Left" Height="134" VerticalAlignment="Top" Width="323" Margin="0,0,-2,0"/>
-        </GroupBox>
-
-    </Grid>
+        Title="MainWindow" Height="215" Width="525">
+		<Grid>
+				<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<GroupBox Grid.Column="0" Header="ServerData" >
+						<Grid >
+								<Grid.RowDefinitions>
+										<RowDefinition Height="auto"/>
+										<RowDefinition Height="auto"/>
+										<RowDefinition Height="auto"/>
+								</Grid.RowDefinitions>
+								<Grid.ColumnDefinitions>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+								</Grid.ColumnDefinitions>
+								<TextBlock Grid.Row="0" Grid.Column="0" Text="IP" />
+								<TextBox x:Name="ServIP" Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" IsEnabled="False"/>
+								<TextBlock Grid.Row="1" Grid.Column="0" Text="Port" />
+								<TextBox x:Name="ServPort" Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" Text="60000"/>
+								<Button x:Name="StartBtn" Grid.Row="2" Grid.ColumnSpan="2" Content="Start" Click="StartBtn_Click"/>
+						</Grid>
+				</GroupBox>
+				<GroupBox Grid.Column="1" Header="ConnectedToServer" >
+						<ListBox x:Name="ConnectedList" />
+				</GroupBox>
+		</Grid>
 </Window>
